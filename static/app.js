@@ -41,6 +41,9 @@ const endCallButton = document.getElementById('endCallButton');
 const conversationDisplay = document.getElementById('conversationDisplay');
 const responseAudio = document.getElementById('responseAudio');
 const interruptBadge = document.getElementById('interruptBadge');
+const muteButton = document.getElementById('muteButton');
+
+let isMuted = false;
 
 // Generate unique session ID
 function generateSessionId() {
@@ -618,7 +621,8 @@ function startUnifiedVAD() {
         const average = sum / bufferLength;
         const maxAmplitude = Math.max(...dataArray);
 
-        const isLoud = (average > SILENCE_THRESHOLD && maxAmplitude > PEAK_THRESHOLD);
+        // Respect mute: if muted, never treat as loud
+        const isLoud = !isMuted && (average > SILENCE_THRESHOLD && maxAmplitude > PEAK_THRESHOLD);
 
         if (isLoud) {
             consecutiveLoudChecks++;
@@ -836,7 +840,19 @@ document.addEventListener('DOMContentLoaded', () => {
         const endBtn = document.getElementById('endCallButton');
         if (callBtn) callBtn.addEventListener('click', () => startCall(), { passive: true });
         if (endBtn) endBtn.addEventListener('click', () => endCall(), { passive: true });
+        if (muteButton) muteButton.addEventListener('click', () => toggleMute(), { passive: true });
     } catch (e) {
         console.error('Failed to bind event listeners:', e);
     }
 });
+
+function toggleMute() {
+    isMuted = !isMuted;
+    if (muteButton) {
+        muteButton.setAttribute('aria-pressed', isMuted ? 'true' : 'false');
+    }
+    // Mute/unmute actual mic track
+    if (audioStream) {
+        audioStream.getAudioTracks().forEach(t => t.enabled = !isMuted);
+    }
+}

@@ -79,6 +79,19 @@
             </svg>
         </div>
 
+        <!-- Mute Microphone Button -->
+        <button id="muteButton" class="mute-button hidden" aria-pressed="false" type="button" title="Mikrofonni o'chirish/yoniqtirish">
+            <svg class="mute-on" width="24" height="24" viewBox="0 0 24 24" fill="white" aria-hidden="true">
+                <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
+                <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
+            </svg>
+            <svg class="mute-off" width="24" height="24" viewBox="0 0 24 24" fill="white" aria-hidden="true">
+                <path d="M16.5 12c0-1.07-.38-2.05-1-2.82l-1.43 1.43c.26.41.43.89.43 1.39 0 1.66-1.34 3-3 3-.5 0-.98-.17-1.39-.43l-1.43 1.43C8.95 16.62 9.93 17 11 17c2.76 0 5-2.24 5-5z"/>
+                <path d="M12 3c-1.66 0-3 1.34-3 3v2.18l6-6C14.05 1.45 13.06 1 12 1z"/>
+                <path d="M3.41 2.86 2 4.27l5 5V11c0 1.66 1.34 3 3 3 .37 0 .72-.08 1.04-.21l1.51 1.51C11.95 15.56 11.49 15.62 11 15.62c-2.76 0-5-2.24-5-5H4c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c1.03-.15 1.98-.55 2.79-1.12l3.94 3.94 1.41-1.41L3.41 2.86z"/>
+            </svg>
+        </button>
+
         <!-- Conversation Display (Hidden, for debugging) -->
         <div id="conversationDisplay" class="conversation-display hidden"></div>
     </div>
