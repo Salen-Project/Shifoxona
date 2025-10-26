@@ -622,6 +622,10 @@ if __name__ == '__main__':
     # Get port from environment (Render sets PORT env variable) or use 8080
     port = int(os.environ.get('PORT', 8080))
 
-    # For production deployment with gunicorn, use:
-    # gunicorn --worker-class eventlet -w 1 --bind 0.0.0.0:$PORT app:app
-    socketio.run(app, host='0.0.0.0', port=port, allow_unsafe_werkzeug=True)
+    try:
+        print(f"Starting server on http://0.0.0.0:{port}")
+        socketio.run(app, host='0.0.0.0', port=port, debug=True, allow_unsafe_werkzeug=True)
+    except Exception as e:
+        print(f"ERROR starting server: {e}")
+        import traceback
+        traceback.print_exc()
