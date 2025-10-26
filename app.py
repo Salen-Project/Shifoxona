@@ -1,3 +1,6 @@
+import eventlet
+eventlet.monkey_patch()
+
 import os
 import io
 import base64
@@ -30,7 +33,7 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = 'shifokor-secret-key-2024'
 logger.info("Flask app created")
 
-socketio = SocketIO(app, cors_allowed_origins="*", max_http_buffer_size=10e6)
+socketio = SocketIO(app, cors_allowed_origins="*", max_http_buffer_size=10e6, async_mode="eventlet")
 logger.info("SocketIO initialized with CORS enabled")
 
 AISHA_API_KEY = os.getenv("AISHA_API_KEY")

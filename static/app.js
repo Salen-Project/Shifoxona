@@ -49,7 +49,8 @@ function generateSessionId() {
 
 // Initialize Socket.IO connection
 function initializeSocket() {
-    socket = io();
+    // Prefer websockets to avoid polling issues behind proxies/LBs
+    socket = io({ transports: ['websocket'], upgrade: false });
 
     socket.on('connect', () => {
         console.log('Connected to server');
