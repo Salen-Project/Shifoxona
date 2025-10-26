@@ -10,6 +10,10 @@ import requests
 from pathlib import Path
 import time
 
+# Eventlet monkey patching for production WebSocket support
+import eventlet
+eventlet.monkey_patch()
+
 # Load environment variables
 load_dotenv()
 
@@ -618,4 +622,10 @@ if __name__ == '__main__':
 
     print("🏥 Sofia Voice Assistant Server Starting...")
     print("📱 Open http://localhost:8080 in your browser")
-    socketio.run(app, debug=True, host='0.0.0.0', port=8080)
+
+    # Get port from environment (Render sets PORT env variable) or use 8080
+    port = int(os.environ.get('PORT', 8080))
+
+    # For production deployment with gunicorn, use:
+    # gunicorn --worker-class eventlet -w 1 --bind 0.0.0.0:$PORT app:app
+    socketio.run(app, host='0.0.0.0', port=port, allow_unsafe_werkzeug=True)
