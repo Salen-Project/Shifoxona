@@ -611,8 +611,8 @@ function startUnifiedVAD() {
     let consecutiveLoudChecks = 0;
 
     // Tunables - adjusted for better UX and reduced sensitivity
-    const SILENCE_THRESHOLD = 45; // stricter average gate to reduce noise
-    const PEAK_THRESHOLD = 150;   // stricter peak gate to reduce noise
+    const SILENCE_THRESHOLD = 28; // lower average gate to catch normal speech
+    const PEAK_THRESHOLD = 110;   // lower peak gate to catch normal speech
     const CHECK_INTERVAL = 40;    // faster cadence for responsiveness
     const MIN_SEGMENT_MS = 700;   // allow slightly shorter utterances
     const MAX_SEGMENT_MS = 15000; // safety cutoff (15s)
@@ -652,7 +652,8 @@ function startUnifiedVAD() {
         const maxAmplitude = Math.max(...dataArray);
 
         // Respect mute: if muted, never treat as loud
-        const isLoud = !isMuted && (average > SILENCE_THRESHOLD && maxAmplitude > PEAK_THRESHOLD);
+        // Use OR so either avg energy or peak can trigger speech detection
+        const isLoud = !isMuted && (average > SILENCE_THRESHOLD || maxAmplitude > PEAK_THRESHOLD);
 
         if (isLoud) {
             consecutiveLoudChecks++;
