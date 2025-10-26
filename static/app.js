@@ -830,4 +830,12 @@ function addToConversation(sender, text) {
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', () => {
     console.log('Sofia Voice Assistant initialized');
+    try {
+        const callBtn = document.getElementById('callButton');
+        const endBtn = document.getElementById('endCallButton');
+        if (callBtn) callBtn.addEventListener('click', () => startCall(), { passive: true });
+        if (endBtn) endBtn.addEventListener('click', () => endCall(), { passive: true });
+    } catch (e) {
+        console.error('Failed to bind event listeners:', e);
+    }
 });
