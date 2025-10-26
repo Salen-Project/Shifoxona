@@ -124,6 +124,22 @@ async function startCall() {
     if (isCallActive) return;
 
     try {
+        // CRITICAL: Unlock audio context IMMEDIATELY on user click (before any async operations)
+        // This ensures browser allows audio playback later
+        try {
+            const unlockAudio = new Audio();
+            unlockAudio.src = 'data:audio/mp3;base64,SUQzBAAAAAABEVRYWFgAAAAtAAADY29tbWVudABCaWdTb3VuZEJhbmsuY29tIC8gTGFTb25vdGhlcXVlLm9yZwBURU5DAAAAHQAAA1N3aXRjaCBQbHVzIMKpIE5DSCBTb2Z0d2FyZQBUSVQyAAAABgAAAzIyMzUAVFNTRQAAAA8AAANMYXZmNTcuODMuMTAwAAAAAAAAAAAAAAD/80DEAAAAA0gAAAAATEFNRTMuMTAwVVVVVVVVVVVVVUxBTUUzLjEwMFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/zQsRbAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/zQMSkAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV';
+            unlockAudio.play().then(() => {
+                console.log('Audio unlocked successfully');
+                unlockAudio.pause();
+                unlockAudio.remove();
+            }).catch(() => {
+                console.log('Audio unlock attempt (may fail, but that's ok)');
+            });
+        } catch (e) {
+            console.log('Audio unlock error (not critical):', e);
+        }
+
         isCallActive = true;
         isFirstGreeting = true;  // Mark that we're expecting the first greeting
         document.body.classList.add('call-active');
