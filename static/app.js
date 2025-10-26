@@ -583,9 +583,9 @@ function startUnifiedVAD() {
     // Tunables - adjusted for better UX and reduced sensitivity
     const SILENCE_THRESHOLD = 35; // average gate (increased from 25 to reduce noise pickup)
     const PEAK_THRESHOLD = 130;   // peak gate (increased from 100 to reduce noise pickup)
-    const CHECK_INTERVAL = 50;    // 50ms cadence
-    const MIN_SEGMENT_MS = 800;   // don't send tiny segments
-    const MAX_SEGMENT_MS = 20000; // safety cutoff (20s)
+    const CHECK_INTERVAL = 40;    // faster cadence for responsiveness
+    const MIN_SEGMENT_MS = 700;   // allow slightly shorter utterances
+    const MAX_SEGMENT_MS = 15000; // safety cutoff (15s)
     const SILENCE_CUT_MS = 700;   // 0.7s trailing silence to finalize (as requested)
     const BARGE_IN_MS = 800;      // sustained loud speech to barge-in (faster)
 
