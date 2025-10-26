@@ -302,7 +302,7 @@ def speech_to_text(audio_data):
                 headers=headers,
                 files=files,
                 data=data,
-                timeout=8  # 8 second timeout for faster response
+                timeout=12  # slightly higher for Render network
             )
             response.raise_for_status()
 

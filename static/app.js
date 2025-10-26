@@ -48,6 +48,12 @@ let processingTimer = null;
 let hasSentSilencePrompt = false;
 let lastSilenceNudgeMs = 0;
 
+function setMicEnabled(enabled) {
+    if (audioStream) {
+        audioStream.getAudioTracks().forEach(t => t.enabled = enabled && !isMuted);
+    }
+}
+
 // Generate unique session ID
 function generateSessionId() {
     return 'session_' + Math.random().toString(36).substr(2, 9);
@@ -374,6 +380,7 @@ function playAIResponse(audioBase64, text) {
             if (isFirstGreeting) {
                 console.log('First greeting completed (no audio) - barge-in now enabled');
                 isFirstGreeting = false;
+                setMicEnabled(true);
             }
 
             if (isCallActive) {
@@ -385,6 +392,11 @@ function playAIResponse(audioBase64, text) {
     }
 
     isAISpeaking = true;
+
+    // During first greeting, disable mic to prevent any barge-in attempts
+    if (isFirstGreeting) {
+        setMicEnabled(false);
+    }
 
     // Update UI to AI speaking state
     callButton.classList.remove('calling', 'user-speaking');
@@ -427,6 +439,7 @@ function playAIResponse(audioBase64, text) {
         if (isFirstGreeting) {
             console.log('First greeting completed - barge-in now enabled');
             isFirstGreeting = false;
+            setMicEnabled(true);
         }
 
         // Immediately switch to listening mode for real-time feel
@@ -452,6 +465,7 @@ function playAIResponse(audioBase64, text) {
             if (isFirstGreeting) {
                 console.log('First greeting playback failed - barge-in now enabled');
                 isFirstGreeting = false;
+                setMicEnabled(true);
             }
 
             // If initial greeting fails, still switch to listening
