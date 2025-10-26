@@ -3,6 +3,8 @@ import io
 import base64
 import tempfile
 import subprocess
+import logging
+import sys
 from flask import Flask, render_template, jsonify
 from flask_socketio import SocketIO, emit
 from dotenv import load_dotenv
@@ -10,15 +12,39 @@ import requests
 from pathlib import Path
 import time
 
+# Configure logging to stdout
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.StreamHandler(sys.stdout)
+    ]
+)
+logger = logging.getLogger(__name__)
+
 # Load environment variables
 load_dotenv()
+logger.info("Environment variables loaded")
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'shifokor-secret-key-2024'
+logger.info("Flask app created")
+
 socketio = SocketIO(app, cors_allowed_origins="*", max_http_buffer_size=10e6)
+logger.info("SocketIO initialized with CORS enabled")
 
 AISHA_API_KEY = os.getenv("AISHA_API_KEY")
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+
+if AISHA_API_KEY:
+    logger.info("AISHA_API_KEY found")
+else:
+    logger.warning("AISHA_API_KEY not found!")
+
+if GROQ_API_KEY:
+    logger.info("GROQ_API_KEY found")
+else:
+    logger.warning("GROQ_API_KEY not found!")
 
 # API endpoints
 STT_URL = "https://back.aisha.group/api/v1/stt/post/"
@@ -446,21 +472,24 @@ def test_tts():
 @socketio.on('connect')
 def handle_connect():
     """Handle client connection"""
-    print('Client connected')
+    logger.info('✅ Client connected')
+    print('✅ Client connected')
     emit('connected', {'status': 'Connected to Sofia'})
 
 
 @socketio.on('disconnect')
 def handle_disconnect():
     """Handle client disconnection"""
-    print('Client disconnected')
+    logger.info('❌ Client disconnected')
+    print('❌ Client disconnected')
 
 
 @socketio.on('start_call')
 def handle_start_call(data):
     """Handle call start - send initial greeting"""
     session_id = data.get('session_id', 'default')
-    print(f"Starting call for session: {session_id}")
+    logger.info(f"📞 Starting call for session: {session_id}")
+    print(f"📞 Starting call for session: {session_id}")
 
     # Check if API keys are configured
     if not AISHA_API_KEY:
@@ -510,6 +539,7 @@ def handle_process_audio(data):
         session_id = data.get('session_id', 'default')
         audio_base64 = data.get('audio')
         req_id = data.get('request_id', None)
+        logger.info(f"🎤 Processing audio for session: {session_id}, request_id: {req_id}")
         state = get_session_state(session_id)
         if isinstance(req_id, int):
             state['latest_request_id'] = max(state['latest_request_id'], req_id)
@@ -613,15 +643,42 @@ def handle_interrupt(data):
 
 
 if __name__ == '__main__':
-    if not AISHA_API_KEY or not GROQ_API_KEY:
-        print("⚠️  Warning: API keys not found. Please set AISHA_API_KEY and GROQ_API_KEY in .env file")
+    print("\n" + "="*60)
+    print("🏥 SOFIA VOICE ASSISTANT SERVER")
+    print("="*60)
 
-    print("🏥 Sofia Voice Assistant Server Starting...")
-    print("📱 Open http://localhost:8080 in your browser")
+    logger.info("Starting Sofia Voice Assistant Server...")
+
+    if not AISHA_API_KEY or not GROQ_API_KEY:
+        logger.warning("⚠️  API keys not found. Please set AISHA_API_KEY and GROQ_API_KEY in .env file")
+        print("⚠️  Warning: API keys not found. Please set AISHA_API_KEY and GROQ_API_KEY in .env file")
 
     # Get port from environment (Render sets PORT env variable) or use 8080
     port = int(os.environ.get('PORT', 8080))
 
-    # For production deployment with gunicorn, use:
-    # gunicorn --worker-class eventlet -w 1 --bind 0.0.0.0:$PORT app:app
-    socketio.run(app, host='0.0.0.0', port=port, allow_unsafe_werkzeug=True)
+    logger.info(f"Server configuration:")
+    logger.info(f"  - Host: 0.0.0.0")
+    logger.info(f"  - Port: {port}")
+    logger.info(f"  - CORS: enabled")
+    logger.info(f"  - Max buffer: 10MB")
+
+    print(f"\n📱 Server will start on http://0.0.0.0:{port}")
+    print(f"📱 Local access: http://localhost:{port}")
+    print("="*60 + "\n")
+
+    logger.info("Launching SocketIO server...")
+
+    try:
+        socketio.run(
+            app,
+            host='0.0.0.0',
+            port=port,
+            debug=False,  # Set to False for cleaner logs in production
+            allow_unsafe_werkzeug=True,
+            log_output=True
+        )
+    except Exception as e:
+        logger.error(f"❌ ERROR starting server: {e}")
+        print(f"❌ ERROR starting server: {e}")
+        import traceback
+        traceback.print_exc()
