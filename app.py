@@ -590,7 +590,7 @@ def handle_process_audio(data):
             print(f"Request {req_id} cancelled before TTS")
             return
 
-        # Step 3: Text to Speech
+        # Step 3: Text to Speech (bounded by timeout watchdog)
         emit('status', {'message': 'Javob tayyorlanmoqda...'})
         audio_response = text_to_speech(assistant_text)
 
@@ -615,6 +615,8 @@ def handle_process_audio(data):
         if isinstance(req_id, int):
             payload['request_id'] = req_id
         emit('ai_response', payload)
+        # Let client resume listening immediately even if audio playback fails later
+        emit('start_listening', {})
 
     except Exception as e:
         print(f"Error processing audio: {str(e)}")
@@ -643,6 +645,23 @@ def handle_interrupt(data):
         print(f"Interrupt received for session {session_id}, cancel_before_id set to {state['cancel_before_id']}")
 
     emit('call_ended', {'status': 'Call ended'})
+
+
+@socketio.on('silence_timeout')
+def handle_silence_timeout(data):
+    """Client indicates 5s user silence; nudge the user politely."""
+    session_id = data.get('session_id', 'default')
+    # Send a short AI prompt without LLM: direct phrase
+    prompt_text = "Men sizni eshita olmayapman. Iltimos, balandroq gapiring yoki qaytadan ayting."
+    # Convert to speech
+    audio_data = text_to_speech(prompt_text)
+    audio_base64 = base64.b64encode(audio_data).decode('utf-8') if audio_data else None
+    emit('ai_response', {
+        'text': prompt_text,
+        'audio': audio_base64
+    })
+    # Immediately resume listening on client
+    emit('start_listening', {})
 
 
 if __name__ == '__main__':

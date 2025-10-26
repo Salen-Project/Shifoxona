@@ -45,6 +45,8 @@ const muteButton = document.getElementById('muteButton');
 
 let isMuted = false;
 let processingTimer = null;
+let hasSentSilencePrompt = false;
+let lastSilenceNudgeMs = 0;
 
 // Generate unique session ID
 function generateSessionId() {
@@ -80,6 +82,13 @@ function initializeSocket() {
             inFlightRequestId = null;
             isProcessing = false;
         }
+        // Clear any processing timeout
+        if (processingTimer) {
+            clearTimeout(processingTimer);
+            processingTimer = null;
+        }
+        // Allow future silence prompts after a response
+        hasSentSilencePrompt = false;
         playAIResponse(data.audio, data.text);
     });
 
@@ -98,6 +107,11 @@ function initializeSocket() {
         // Silently return to listening mode without showing error
         isProcessing = false;
         inFlightRequestId = null;
+        if (processingTimer) {
+            clearTimeout(processingTimer);
+            processingTimer = null;
+        }
+        hasSentSilencePrompt = false;
         if (isCallActive && !isAISpeaking) {
             startListening();
         }
@@ -106,6 +120,10 @@ function initializeSocket() {
     socket.on('error', (data) => {
         console.error('Error:', data.message);
         showError(data.message);
+        if (processingTimer) {
+            clearTimeout(processingTimer);
+            processingTimer = null;
+        }
     });
 
     socket.on('call_ended', (data) => {
@@ -463,6 +481,7 @@ function startListening() {
     waveform.classList.remove('hidden');
     waveform.classList.add('active');
     assistantName.classList.add('hidden');
+    hasSentSilencePrompt = false;
 
     // Show listening status prominently
     statusText.textContent = "Tinglanmoqda...";
@@ -706,6 +725,19 @@ function startUnifiedVAD() {
                         finalizeAndSendSegment('max_duration');
                         consecutiveSilentChecks = 0;
                         silenceStartTime = null;
+                    }
+                } else {
+                    // No active segment and user has been silent: send gentle prompt after 5s
+                    const nowTs = Date.now();
+                    if (!isMuted && !isAISpeaking && isCallActive && !hasSentSilencePrompt && silenceDuration >= 5000) {
+                        // Throttle nudges to at most once every 15s
+                        if (nowTs - lastSilenceNudgeMs >= 15000) {
+                            try {
+                                socket.emit('silence_timeout', { session_id: sessionId });
+                                hasSentSilencePrompt = true;
+                                lastSilenceNudgeMs = nowTs;
+                            } catch (e) {}
+                        }
                     }
                 }
             }
