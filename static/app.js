@@ -44,6 +44,7 @@ const interruptBadge = document.getElementById('interruptBadge');
 const muteButton = document.getElementById('muteButton');
 
 let isMuted = false;
+let processingTimer = null;
 
 // Generate unique session ID
 function generateSessionId() {
@@ -163,6 +164,7 @@ async function startCall() {
         statusText.textContent = "Bog'lanmoqda...";
         endCallButton.classList.remove('hidden');
         callDuration.classList.remove('hidden');
+        if (muteButton) muteButton.classList.remove('hidden');
 
         // Start call duration timer
         callStartTime = Date.now();
@@ -302,11 +304,20 @@ function handleSegmentComplete(blob) {
         // Valid WebM file, proceed with sending
         console.log('Valid WebM segment, size:', blob.size);
 
-        // UI: show processing
+        // UI: show processing with safety timeout to prevent stuck state
         statusText.textContent = "Analiz qilinmoqda...";
         statusText.classList.remove('hidden');
         callButton.classList.add('calling');
         callButton.classList.remove('user-speaking');
+        if (processingTimer) clearTimeout(processingTimer);
+        processingTimer = setTimeout(() => {
+            if (isCallActive && !isAISpeaking) {
+                console.warn('Processing timeout, returning to listening');
+                isProcessing = false;
+                inFlightRequestId = null;
+                startListening();
+            }
+        }, 10000);
 
         // Issue new request id
         inFlightRequestId = ++currentRequestId;
@@ -581,8 +592,8 @@ function startUnifiedVAD() {
     let consecutiveLoudChecks = 0;
 
     // Tunables - adjusted for better UX and reduced sensitivity
-    const SILENCE_THRESHOLD = 35; // average gate (increased from 25 to reduce noise pickup)
-    const PEAK_THRESHOLD = 130;   // peak gate (increased from 100 to reduce noise pickup)
+    const SILENCE_THRESHOLD = 45; // stricter average gate to reduce noise
+    const PEAK_THRESHOLD = 150;   // stricter peak gate to reduce noise
     const CHECK_INTERVAL = 40;    // faster cadence for responsiveness
     const MIN_SEGMENT_MS = 700;   // allow slightly shorter utterances
     const MAX_SEGMENT_MS = 15000; // safety cutoff (15s)
@@ -783,6 +794,11 @@ function endCall() {
     callDuration.classList.add('hidden');
     assistantName.classList.add('hidden');
     endCallButton.classList.add('hidden');
+    if (muteButton) {
+        muteButton.classList.add('hidden');
+        muteButton.setAttribute('aria-pressed', 'false');
+    }
+    isMuted = false;
     conversationDisplay.classList.add('hidden');
     conversationDisplay.innerHTML = '';
 
