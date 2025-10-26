@@ -134,7 +134,7 @@ async function startCall() {
                 unlockAudio.pause();
                 unlockAudio.remove();
             }).catch(() => {
-                console.log('Audio unlock attempt (may fail, but that's ok)');
+                console.log("Audio unlock attempt (may fail, but that's ok)");
             });
         } catch (e) {
             console.log('Audio unlock error (not critical):', e);
@@ -273,7 +273,7 @@ function stopSegmentRecording() {
 // Handle completed segment
 function handleSegmentComplete(blob) {
     if (!blob || blob.size < 5000) {
-        console.log('Segment blob too small, skipping. Size:', blob?.size);
+        console.log('Segment blob too small, skipping. Size:', (blob ? blob.size : 0));
         // Silently return to listening
         if (isCallActive && !isAISpeaking) {
             startListening();

@@ -401,6 +401,11 @@ body.call-active {
     50% { transform: translateY(-4px); }
 }
 
+/* Hidden audio element */
+#responseAudio {
+    display: none;
+}
+
 /* Reduced motion preferences */
 @media (prefers-reduced-motion: reduce) {
     .call-button,
