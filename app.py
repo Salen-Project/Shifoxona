@@ -1,3 +1,8 @@
+# Eventlet monkey patching MUST be the very first thing
+# Do this before importing any other modules
+import eventlet
+eventlet.monkey_patch(socket=True, select=True)
+
 import os
 import io
 import base64
@@ -9,11 +14,6 @@ from dotenv import load_dotenv
 import requests
 from pathlib import Path
 import time
-
-# Eventlet monkey patching for production WebSocket support
-# IMPORTANT: Only patch socket, not all modules to avoid breaking requests library
-import eventlet
-eventlet.monkey_patch(socket=True, select=True)
 
 # Load environment variables
 load_dotenv()
