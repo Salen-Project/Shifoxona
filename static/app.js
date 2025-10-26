@@ -560,9 +560,9 @@ function startUnifiedVAD() {
     let consecutiveSilentChecks = 0;
     let consecutiveLoudChecks = 0;
 
-    // Tunables - adjusted for better UX
-    const SILENCE_THRESHOLD = 25; // average gate
-    const PEAK_THRESHOLD = 100;   // peak gate
+    // Tunables - adjusted for better UX and reduced sensitivity
+    const SILENCE_THRESHOLD = 35; // average gate (increased from 25 to reduce noise pickup)
+    const PEAK_THRESHOLD = 130;   // peak gate (increased from 100 to reduce noise pickup)
     const CHECK_INTERVAL = 50;    // 50ms cadence
     const MIN_SEGMENT_MS = 800;   // don't send tiny segments
     const MAX_SEGMENT_MS = 20000; // safety cutoff (20s)
@@ -608,12 +608,15 @@ function startUnifiedVAD() {
             consecutiveSilentChecks = 0;
             silenceStartTime = null;
 
-            if (!segmentActive) {
-                // Start a new segment if none active
+            if (!segmentActive && !isFirstGreeting) {
+                // Start a new segment if none active AND not during first greeting
                 segmentStartMs = Date.now();
                 segmentActive = true;
                 startSegmentRecording();
                 console.log('Speech segment started');
+            } else if (isFirstGreeting) {
+                // During first greeting, ignore user's speech attempts
+                console.log('Speech detected during first greeting - ignoring');
             }
 
             // Barge-in: if AI speaking or processing, and loud sustained >= 0.8s
