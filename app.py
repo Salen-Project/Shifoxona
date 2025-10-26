@@ -1,8 +1,3 @@
-# Gevent monkey patching for WebSocket support
-# This is more stable than eventlet with Flask
-from gevent import monkey
-monkey.patch_all()
-
 import os
 import io
 import base64
@@ -20,7 +15,7 @@ load_dotenv()
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'shifokor-secret-key-2024'
-socketio = SocketIO(app, cors_allowed_origins="*", max_http_buffer_size=10e6, async_mode='gevent')
+socketio = SocketIO(app, cors_allowed_origins="*", max_http_buffer_size=10e6)
 
 AISHA_API_KEY = os.getenv("AISHA_API_KEY")
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
